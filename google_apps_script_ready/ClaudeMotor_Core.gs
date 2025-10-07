@@ -200,63 +200,97 @@ const ClaudeMotor = (function(global) {
 
     /**
      * Calcule le score global d'équilibre
+     * AMÉLIORATION: Calcul réel basé sur scores + parité
      */
     _calculateGlobalScore(state) {
-      // Délégué aux algorithmes spécialisés
-      // Pour l'instant, score basique
-      return 75.0; // TODO: implémenter calcul réel
+      const Calculators = global.ClaudeMotorCalculators;
+      if (!Calculators) return 75.0;
+
+      try {
+        const stats = Calculators.calculateGlobalStats(state.dataContext);
+        return stats.globalScore; // Combine balanceScore (70%) + parityScore (30%)
+      } catch (error) {
+        Logger.warn(`Impossible de calculer le score global: ${error.message}`);
+        return 75.0;
+      }
     }
 
     /**
      * Phase 1: Équilibrage des scores
      */
     _runPhase1(state, options) {
-      Logger.log('Chargement du module ScoresBalancer...');
+      const ScoresBalancer = global.ScoresBalancer;
 
-      // À implémenter avec le module ScoresBalancer
-      const swaps = [];
+      if (!ScoresBalancer) {
+        Logger.warning('Module ScoresBalancer non disponible, phase 1 ignorée');
+        return { success: false, swaps: [], iterations: 0 };
+      }
 
-      Logger.success(`Phase 1 terminée: ${swaps.length} échanges`);
+      try {
+        const result = ScoresBalancer.balance(state.dataContext, {
+          maxIterations: options.maxIterations || 50,
+          maxSwapsPerIteration: options.maxSwapsPerIteration || 10,
+          minImprovement: options.minImprovement || 0.01
+        });
 
-      return {
-        success: true,
-        swaps,
-        iterations: 0
-      };
+        return result;
+
+      } catch (error) {
+        Logger.critical(`Erreur Phase 1: ${error.message}`);
+        return { success: false, swaps: [], iterations: 0, error: error.message };
+      }
     }
 
     /**
      * Phase 2: Correction de parité
      */
     _runPhase2(state, options) {
-      Logger.log('Chargement du module ParityCorrector...');
+      const ParityCorrector = global.ParityCorrector;
 
-      // À implémenter avec le module ParityCorrector
-      const corrections = [];
+      if (!ParityCorrector) {
+        Logger.warning('Module ParityCorrector non disponible, phase 2 ignorée');
+        return { success: false, corrections: [] };
+      }
 
-      Logger.success(`Phase 2 terminée: ${corrections.length} corrections`);
+      try {
+        const result = ParityCorrector.correct(state.dataContext, {
+          tolerance: options.parityTolerance || 1,
+          maxIterations: options.parityMaxIterations || 20,
+          maxCorrections: options.parityMaxCorrections || 50,
+          preserveScores: options.preserveScores !== false // AMÉLIORATION: Préserver Phase 1
+        });
 
-      return {
-        success: true,
-        corrections
-      };
+        return result;
+
+      } catch (error) {
+        Logger.critical(`Erreur Phase 2: ${error.message}`);
+        return { success: false, corrections: [], error: error.message };
+      }
     }
 
     /**
      * Phase 3: MultiSwap
      */
     _runPhase3(state, options) {
-      Logger.log('Chargement du module MultiSwapOptimizer...');
+      const MultiSwapOptimizer = global.MultiSwapOptimizer;
 
-      // À implémenter avec le module MultiSwapOptimizer
-      const cycles = [];
+      if (!MultiSwapOptimizer) {
+        Logger.warning('Module MultiSwapOptimizer non disponible, phase 3 ignorée');
+        return { success: false, cycles: [] };
+      }
 
-      Logger.success(`Phase 3 terminée: ${cycles.length} cycles`);
+      try {
+        const result = MultiSwapOptimizer.optimize(state.dataContext, {
+          maxCycles: options.maxCycles || 10,
+          includeParity: options.multiSwapParity !== false
+        });
 
-      return {
-        success: true,
-        cycles
-      };
+        return result;
+
+      } catch (error) {
+        Logger.critical(`Erreur Phase 3: ${error.message}`);
+        return { success: false, cycles: [], error: error.message };
+      }
     }
 
     /**

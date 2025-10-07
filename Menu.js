@@ -109,8 +109,9 @@ function ouvrirConfigurationComplete() {
  * Ouvre l'interface de répartition en plein écran dans un nouvel onglet
  */
 function ouvrirInterfaceRepartition() {
-  // Remplacez cette URL par VOTRE URL de déploiement
-  const webAppUrl = "https://script.google.com/a/macros/jj82.net/s/AKfycbw1ih_T0Xc3EDh9-ZXtNOmO4sZ-JxR78eaWZfrJQ4kmDPDw4ZFAXLGWaLRIjZmdQNM/exec";
+  // Correction de bug : Utiliser ScriptApp.getService().getUrl() pour obtenir dynamiquement
+  // l'URL de déploiement, ce qui rend le projet portable.
+  const webAppUrl = ScriptApp.getService().getUrl();
   
   const html = `
     <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
