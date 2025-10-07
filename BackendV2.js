@@ -42,8 +42,10 @@ const _eleves_num = v => {
 };
 
 function _eleves_idx(head, aliases){
+  // BUG FIX: Use exact match '===' instead of 'includes()' to prevent false positives (e.g., 'ID_PARENT' matching 'ID').
+  // The header and aliases are already normalized (trimmed and uppercased) by the calling function `buildColumnIndex`.
   for(let i=0;i<head.length;i++)
-    if(aliases.some(a=>head[i].includes(a))) return i;
+    if(aliases.some(a => head[i] === a)) return i;
   return -1;
 }
 

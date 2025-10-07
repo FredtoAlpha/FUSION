@@ -63,6 +63,11 @@ function getGroupsCount() {
 
 // Sauvegarder les groupes
 function saveGroups(groupsData) {
+  // BUG FIX: Valider l'objet d'entrée pour éviter les erreurs de type
+  if (!groupsData || !Array.isArray(groupsData.groups)) {
+    throw new Error("Les données des groupes sont invalides ou manquantes. L'objet `groupsData` doit contenir une propriété `groups` qui est un tableau.");
+  }
+
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     let groupsSheet = ss.getSheetByName('GROUPES');
